@@ -10,7 +10,7 @@
 // @encoding	utf-8
 // @include	http://music.baidu.com/song/*
 // @run-at	document-end
-// @version	1.0.3
+// @version	1.0.1
 // ==/UserScript==
 
 
@@ -28,7 +28,7 @@
  * */
 
 
-var version="1.0.3";
+var version="1.0.1";
 querySong(getSongInfo());
 function getSongInfo(id,title,artist){
 	var path=window.location.pathname,arr=path.split("/");
@@ -163,7 +163,7 @@ function makeHtml(files,text){
 
 function checkUpdate(){
 	var js='var info=document.getElementById("updateimg");';
-	js+='info.src="http://duoluohua.com/myapp/update?system=script&appname=baidumusic_gm&apppot=contentjs&frompot=songweb&type=1&version='+version+'&t="+Math.random();';
+	js+='info.src="http://duoluohua.com/myapp/update?system=script&appname=baidumusicscript&apppot=contentjs&frompot=songweb&type=1&version='+version+'&t="+Math.random();';
 	js+='info.onload=function(){';
 	js+='info.style.display="inline-block";';
 	js+='}';
