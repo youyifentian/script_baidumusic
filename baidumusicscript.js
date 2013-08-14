@@ -19,11 +19,12 @@
 
 /*
  * === 说明 ===
- *作者:有一份田
- *官网:http://duoluohua.com/download/
- *Email:youyifentian@gmail.com
- *Git:http://git.oschina.net/youyifentian
- *最后修改时间:2013.08.15
+ *@作者:有一份田
+ *@官网:http://duoluohua.com/download/
+ *@Email:youyifentian@gmail.com
+ *@Git:http://git.oschina.net/youyifentian
+ *@转载重用请保留此信息
+ *@最后修改时间:2013.08.15
  *
  * */
 
