@@ -10,7 +10,7 @@
 // @encoding	utf-8
 // @include	http://music.baidu.com/song/*
 // @run-at	document-end
-// @version	1.0.1
+// @version	1.0.4
 // ==/UserScript==
 
 
@@ -23,12 +23,12 @@
  *官网:http://duoluohua.com/download/
  *Email:youyifentian@gmail.com
  *Git:http://git.oschina.net/youyifentian
- *最后修改时间:2013.08.14
+ *最后修改时间:2013.08.15
  *
  * */
 
 
-var version="1.0.1";
+var version="1.0.4";
 querySong(getSongInfo());
 function getSongInfo(id,title,artist){
 	var path=window.location.pathname,arr=path.split("/");
@@ -148,7 +148,7 @@ function makeHtml(files,text){
 	var html="";
 	html+='<div style="border:2px solid #A1CBE4;width:560px;padding-left:20px;margin:5px 0px 10px 0px;line-height:25px;">';
 	html+='<div>';
-	html+='<a href="http://duoluohua.com/myapp/chrome/baidumusic/?fromid=baidu_music_extension" style="float:right;" target="_blank"><img id="updateimg" title="有一份田" style="border:none;display:none;"/></a>';
+	html+='<a href="http://duoluohua.com/myapp/script/baidumusic/?fromid=baidu_music_script" style="float:right;" target="_blank"><img id="updateimg" title="有一份田" style="border:none;display:none;"/></a>';
 	html+=text || "";
 	for(var i=0;i<files.length;i++){
 		var file=files[i];
@@ -163,7 +163,7 @@ function makeHtml(files,text){
 
 function checkUpdate(){
 	var js='var info=document.getElementById("updateimg");';
-	js+='info.src="http://duoluohua.com/myapp/update?system=script&appname=baidumusicscript&apppot=contentjs&frompot=songweb&type=1&version='+version+'&t="+Math.random();';
+	js+='info.src="http://duoluohua.com/myapp/update?system=script&appname=baidumusicscript&apppot=scriptjs&frompot=songweb&type=1&version='+version+'&t="+Math.random();';
 	js+='info.onload=function(){';
 	js+='info.style.display="inline-block";';
 	js+='}';
