@@ -158,7 +158,6 @@ function makeHtml(files,text){
 		if(i==1 || i==3)html+='</div><div>';
 	}
 	html+='</div></div>';
-	html+='<script type="text/javascript">alert(0);</script>';
 	return html;
 }
 
