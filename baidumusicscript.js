@@ -9,8 +9,9 @@
 // @license	GPL version 3
 // @encoding	utf-8
 // @include	http://music.baidu.com/song/*
+// @grant       GM_xmlhttpRequest
 // @run-at	document-end
-// @version	1.0.4
+// @version	1.2.2
 // ==/UserScript==
 
 
@@ -24,150 +25,147 @@
  *@Email:youyifentian@gmail.com
  *@Git:http://git.oschina.net/youyifentian
  *@转载重用请保留此信息
- *@最后修改时间:2013.08.15
+ *@最后修改时间:2013.09.24
  *
  * */
 
 
-var version="1.0.4";
+var APPNAME='百度音乐助手';
+var VERSION='1.2.2';
+var t=Math.random();
 querySong(getSongInfo());
-function getSongInfo(id,title,artist){
-	var path=window.location.pathname,arr=path.split("/");
-	var id=arr[2] || id,p=arr[3];
-	return {
-		"id":"song"==arr[1].toLowerCase() ? id : "",
-		"type": p && "download"==p.toLowerCase(),
-		"title":title || "",
-		"artist":artist || ""
-	};
-}
-function setDownLink(node,opt){
-	var filesInfo=getDownInfo(opt),
-	    html=makeHtml(filesInfo.files);
-	node.innerHTML=html;
-	checkUpdate();	
-}
 function querySong(opt){
 	if(!opt.id) return;
-	var node=document.createElement("div");
-	node.innerHTML=makeHtml([],'<font color="#A1CBE4"><strong>数据赶来中...</strong></font>');
-	node.style.display="block";
-	var o=null,obj=null;
-	if(opt.type){
-		o=document.forms["form"];
-		if(!o)return;
-		obj=o.firstChild.nextSibling;
-		obj.appendChild(node);
-	}else{
-		o=document.getElementsByClassName("info-holder clearfix");
-		if(!o)return;
-		obj=o[0];
-		obj.insertBefore(node,obj.firstChild);
+	var box=document.getElementsByClassName(opt['boxCss']);
+	if(!box.length)return;
+	var node=document.createElement('div'),o=box[0];
+	node.style.display='block';
+	o[opt['addNodeFun']](node,o[opt['child']]);
+	try{
+		o.parentNode.parentNode.parentNode.style.minWidth=opt['boxWidth'];
+	}catch(err){}
+	if(!GM_xmlhttpRequest){
+		showDownHtml(node,'',4);
+		return;
 	}
-	checkUpdate();
+	showDownHtml(node,'',1);
 	var id=opt.id,title=opt.title,artist=opt.artist,
-	    //************************************V1.0版
-	    //url="http://qianqianmini.baidu.com/app/link/getLinks.php?linkType=1&isLogin=1&isHq=1&clientVer=7.0.4&isCloud=0&hasMV=1&songId="+id+"&songTitle="+title+"&songArtist="+artist,
-	    //************************************V2.0版
-	    url="http://musicmini.baidu.com/app/link/getLinks.php?linkType=1&isLogin=1&clientVer=8.1.0.8&isHq=1&songAppend=&isCloud=0&hasMV=1&songId="+id+"&songTitle="+title+"&songArtist="+artist;
+	    url='http://musicmini.baidu.com/app/link/getLinks.php?linkType=1&isLogin=1&clientVer=8.2.0.9&isHq=1&songAppend=&isCloud=0&hasMV=1&songId='+id+'&songTitle='+title+'&songArtist='+artist;
 	GM_xmlhttpRequest({
 		method: "GET",
 		url: url,
 		onload: function(response) {
-			//alert(response.responseText);
-			setDownLink(node,JSON.parse(response.responseText));
+			showDownHtml(node,JSON.parse(response.responseText),0);
+		},
+		onerror: function(response) {
+			showDownHtml(node,'',2);
+		},
+		ontimeout: function(response) {
+			showDownHtml(node,'',3);
 		}
 	});
 }
-function getDownInfo(opt){
-	/************************************V1.0版
-	var o=opt[0],id=o.songID,lyric="";
-	    artist=o.artist,title=o.song_title,
-	    fileslist=o.fileslist,files=[];
-	************************************V1.0版
-	*/
-
-	// *************************************V2.0版
-	var o=opt[0],id=o.song_id,lyric=o.lyric_url
-	    artist=o.song_artist,title=o.title,
-	    fileslist=o.file_list,files=[];
-	// *************************************V2.0版
-	
+function getSongInfo(id,title,artist){
+	var path=window.location.pathname,arr=path.split('/'),id=arr[2] || id,p=arr[3],
+	    type=p && "download"==p.toLowerCase();
+	return {
+		"id":"song"==arr[1].toLowerCase() ? id : "",
+		"title":title || "",
+		"artist":artist || "",
+		"boxCss": type ? "ul" : "info-holder",
+		"addNodeFun":type ?  "appendChild" : "insertBefore",
+		"child": type ? "lastChild" : "firstChild",
+		"boxWidth": type ? "670px" : ""
+	};
+}
+function setSongsInfo(opt){
+	var o=opt[0],id=o.song_id,lyric=o.lyric_url,albumImg=o.album_image_url,
+	    artist=o.song_artist,title=o.title,fileslist=o.file_list,files=[];
 	for(var i=0;i<fileslist.length;i++){
-		files.push(getFileInfo(fileslist[i],lyric));
+		files.push(formatSongInfo(fileslist[i],lyric));
 	}
 	return {
 		"id":id,
 		"title":title,
 		"artist":artist,
+		"albumImg":albumImg,
 		"lyric":lyric,
 		"files":files
-	}
+	};
 }
-function getFileInfo(file,lyric){
-	/************************************V1.0版
-	var url=file.songLink,
-	    format=file.format.toLowerCase(),
-	    size=file.size,rate=file.rate,
-	    lyric=lyric || file.lrcLink,
-	    ratetitle="",index=0;
-	************************************V1.0版
-	*/
-	 //*************************************V2.0版
-	var url=file.url,
-	    format=file.format.toLowerCase(),
-	    size=file.size,rate=file.kbps,
-	    ratetitle="",index=0;
-	 //*************************************V2.0版
+function formatSongInfo(file){
+	var url=file.url,format=file.format.toLowerCase(),
+	    size=file.size,rate=file.kbps,i=0,
+	    ratetitle=['无 损','超 高','高 质','标 准','低 质','其 他'];
 	if(rate>320 && format!="mp3"){
-		ratetitle="无 损";
+		i=0;
 	}else if(rate>256 && rate<=320){
-		ratetitle="超 高";
-		index=1;
+		i=1;
 	}else if(rate>128 && rate<=256){
-		ratetitle="高 质";
-		index=2;
+		i=2;
 	}else if(rate>64 && rate<=128){
-		ratetitle="标 准";
-		index=3;
+		i=3;
 	}else if(rate<=64){
-		ratetitle="低 质";
-		index=4;
+		i=4;
+	}else{
+		i=5;
 	}
-	size=Math.round(size/1048576*10)/10+"M";
+	size=Math.round(size/1048576*10)/10+'M';
 	return {
-		"index":index,
-		"lyric":lyric,
+		"index":i,
 		"format":format,
 		"rate":rate,
-		"ratetitle":ratetitle,
+		"ratetitle":ratetitle[i],
 		"size":size,
 		"url":url
 	};
 }
-function makeHtml(files,text){
-	var html="";
-	html+='<div style="border:2px solid #A1CBE4;width:560px;padding-left:20px;margin:5px 0px 10px 0px;line-height:25px;">';
+function showDownHtml(node,opt,index){
+	var msg=[
+		'',
+	    	'数据赶来中',
+		'请求出错,请重试或检查是否为最新版本',
+		'请求超时,请刷新页面重试',
+		'您的油猴子扩展暂时不支持该脚本,请更新扩展或脚本到最新版本'
+	],filesInfo=opt ? setSongsInfo(opt) : {},text=msg[index],
+	html=makeHtml(filesInfo,text,index-1);
+	node.innerHTML=html;
+	node.title=APPNAME;
+	checkUpdate();
+}
+function makeHtml(filesInfo,text,type){
+	var files=filesInfo.files || [],html='',file='',url='',albumImg=filesInfo.albumImg,lyric=filesInfo.lyric;
+	html+='<div style="border:2px solid #A1CBE4;width:560px;padding-left:25px;margin:5px 0px 10px 0px;line-height:25px;">';
 	html+='<div>';
-	html+='<a href="http://duoluohua.com/myapp/script/baidumusic/?fromid=baidu_music_script" style="float:right;" target="_blank"><img id="updateimg" title="有一份田" style="border:none;display:none;"/></a>';
-	html+=text || "";
+	html+='<a href="'+getUpdateUrl('getnewversion',1)+'" style="float:right;" target="_blank">';
+	html+='<img id="updateimg" title="有一份田" style="border:none;display:none;"/></a>';
+	html+=text ? '<font color="'+(type ? '#FF0000' : '#A1CBE4')+'"><b>'+text+'...</b></font>' : '';
 	for(var i=0;i<files.length;i++){
-		var file=files[i];
-		var url="http://music.baidu.com/data/music/file?link="+file.url;
-		html+='<span style="display:inline-block;margin-left:5px;min-width:190px;"><a style="text-decoration:underline;" href="'+url+'">'+file.ratetitle+'</a><span><strong>&nbsp;&nbsp;&nbsp;'+file.size+'</strong></span><span style="color:#999999;">&nbsp;&nbsp;&nbsp;'+file.format+'&nbsp;&nbsp;'+file.rate+'kbps</span></span>';
-		if(i==1 || i==3)html+='</div><div>';
+		file=files[i];
+		url="http://music.baidu.com/data/music/file?link="+file.url;
+		html+='<span style="display:inline-block;min-width:200px;">';
+		html+='<a style="text-decoration:underline;" href="'+url+'" title="'+file.ratetitle+'"><b>'+file.ratetitle+'</b></a>';
+		html+='<span><b>&nbsp;&nbsp;&nbsp;'+file.size+'</b></span>';
+		html+='<span style="color:#999999;">&nbsp;&nbsp;&nbsp;'+file.format+'&nbsp;&nbsp;'+file.rate+'kbps</span>';
+		html+='</span>';
+		if(i%2==1)html+='</div><div>';
 	}
+	html+='</div><div>';
+	html+=albumImg ? '<span style="margin-right:100px;"><a style="text-decoration:underline;" target="_blank" href="'+albumImg+'" title="专辑封面">专辑封面</a></span>' : '';
+	html+=lyric ? '<span><a style="text-decoration:underline;" href="'+lyric+'" title="下载歌词">LRC歌词</a></span>' : '';
 	html+='</div></div>';
 	return html;
 }
-
 function checkUpdate(){
-	var js='var info=document.getElementById("updateimg");';
-	js+='info.src="http://duoluohua.com/myapp/update?system=script&appname=baidumusicscript&apppot=scriptjs&frompot=songweb&type=1&version='+version+'&t="+Math.random();';
-	js+='info.onload=function(){';
-	js+='info.style.display="inline-block";';
+	var js='var upinfo=document.getElementById("updateimg");';
+	js+='upinfo.src="'+getUpdateUrl('checkupdate',1)+'";';
+	js+='upinfo.onload=function(){';
+	js+='upinfo.style.display="inline-block";';
 	js+='}';
 	loadJs(js);
+}
+function getUpdateUrl(action,type){
+	return 'http://app.duoluohua.com/update?action='+action+'&system=script&appname=baidumusicscript&apppot=scriptjs&frompot=songweb&type='+type+'&version='+VERSION+'&t='+t;
 }
 function loadJs(js){
 	var oHead=document.getElementsByTagName('HEAD')[0],
@@ -191,3 +189,4 @@ function googleAnalytics(){
 	loadJs(js);
 }
 googleAnalytics();
+
