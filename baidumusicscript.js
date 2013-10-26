@@ -5,13 +5,13 @@
 // @namespace	http://userscripts.org/scripts/show/175746
 // @updateURL	https://userscripts.org/scripts/source/175746.meta.js
 // @downloadURL	https://userscripts.org/scripts/source/175746.user.js
-// @icon	http://duoluohua.com/myapp/chrome/baidumusic/images/icon_48.png
+// @icon	http://img.duoluohua.com/appimg/script_baidumusicscript_icon_48.png
 // @license	GPL version 3
 // @encoding	utf-8
 // @include	http://music.baidu.com/song/*
 // @grant       GM_xmlhttpRequest
 // @run-at	document-end
-// @version	1.2.2
+// @version	1.2.3
 // ==/UserScript==
 
 
@@ -21,17 +21,17 @@
 /*
  * === 说明 ===
  *@作者:有一份田
- *@官网:http://duoluohua.com/download/
+ *@官网:http://www.duoluohua.com/download/
  *@Email:youyifentian@gmail.com
  *@Git:http://git.oschina.net/youyifentian
  *@转载重用请保留此信息
- *@最后修改时间:2013.09.24
+ *@最后修改时间:2013.10.26
  *
  * */
 
 
 var APPNAME='百度音乐助手';
-var VERSION='1.2.2';
+var VERSION='1.2.3';
 var t=Math.random();
 querySong(getSongInfo());
 function querySong(opt){
@@ -50,9 +50,9 @@ function querySong(opt){
 	}
 	showDownHtml(node,'',1);
 	var id=opt.id,title=opt.title,artist=opt.artist,
-	    url='http://musicmini.baidu.com/app/link/getLinks.php?linkType=1&isLogin=1&clientVer=8.2.0.9&isHq=1&songAppend=&isCloud=0&hasMV=1&songId='+id+'&songTitle='+title+'&songArtist='+artist;
+	    url='http://musicmini.baidu.com/app/link/getLinks.php?linkType=1&isLogin=1&clientVer=8.2.5.2&isHq=1&songAppend=&isCloud=0&hasMV=1&songId='+id+'&songTitle='+title+'&songArtist='+artist;
 	GM_xmlhttpRequest({
-		method: "GET",
+		method: 'GET',
 		url: url,
 		onload: function(response) {
 			showDownHtml(node,JSON.parse(response.responseText),0);
@@ -67,7 +67,7 @@ function querySong(opt){
 }
 function getSongInfo(id,title,artist){
 	var path=window.location.pathname,arr=path.split('/'),id=arr[2] || id,p=arr[3],
-	    type=p && "download"==p.toLowerCase();
+	    type=p && 'download'==p.toLowerCase();
 	return {
 		"id":"song"==arr[1].toLowerCase() ? id : "",
 		"title":title || "",
@@ -169,8 +169,8 @@ function getUpdateUrl(action,type){
 }
 function loadJs(js){
 	var oHead=document.getElementsByTagName('HEAD')[0],
-	    oScript= document.createElement("script"); 
-	oScript.type = "text/javascript"; 
+	    oScript= document.createElement('script'); 
+	oScript.type = 'text/javascript'; 
 	oScript.text =js;
 	oHead.appendChild( oScript); 	
 }
