@@ -47,7 +47,8 @@
   [7]: http://userscripts.org/images/browsers/safari.png
   [8]: http://ss-o.net/safari/extension/NinjaKit.safariextz
   [9]: http://userscripts.org/scripts/show/175746
-  [10]: http://duoluohua.com/download/
-  [11]: http://duoluohua.com/myapp/chrome/baidumusic/images/options_1.png
-  [12]: http://duoluohua.com/myapp/chrome/baidumusic/images/options_2.png
+  [10]: http://www.duoluohua.com/download/
+  [11]: http://img.duoluohua.com/appimg/chrome_baidumusic_options_1.png
+  [12]: http://img.duoluohua.com/appimg/chrome_baidumusic_options_2.png
+
 
