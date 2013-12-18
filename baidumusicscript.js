@@ -173,7 +173,11 @@ var hostname=location.hostname,hostList=['music.baidu.com','y.baidu.com'];
     function showAlbumImg(){
         var url='http://tingapi.ting.baidu.com/v1/restserver/ting?method=baidu.ting.song.play&songid='+songInfo['id'],
         httpHwnd=null,mousePosition=0,albumImgKey=['pic_small','pic_big','pic_premium','pic_huge','pic_radio'],
-        modal= new $.modal({show: true}),box=$('<div/>').css({
+        imgres=[
+            'http://static.tieba.baidu.com/tb/static-album/img/mouseleft.cur',
+            'http://static.tieba.baidu.com/tb/static-album/img/mouseright.cur',
+            'http://tieba.baidu.com/tb/img/loading.gif'    
+        ],modal= new $.modal({show: true}),box=$('<div/>').css({
             "left":"50%",
             "top":"50%",
             "position":"absolute",
@@ -186,7 +190,7 @@ var hostname=location.hostname,hostList=['music.baidu.com','y.baidu.com'];
             modal.remove();
             box.remove();
         },
-        loadingImg=$('<img src="http://tieba.baidu.com/tb/img/loading.gif"/>').css({
+        loadingImg=$('<img src="'+imgres[2]+'"/>').css({
             "height":"32px",
             "width":"32px",
             "margin-left":"-16px",
@@ -207,13 +211,8 @@ var hostname=location.hostname,hostList=['music.baidu.com','y.baidu.com'];
                     "box-shadow":"0 0 15px rgba(127, 173, 220, 0.8), 0 0 15px #7FADDC inset"
                 }).mousemove(function(e){
                     var i = o.offset();
-                    if (e.pageX - i.left < w / 2) {
-                        mousePosition=0;
-                        o.css({"cursor":"url(\"http://static.tieba.baidu.com/tb/static-album/img/mouseleft.cur\"), pointer"});
-                    } else {
-                        mousePosition=1;
-                        o.css({"cursor":"url(\"http://static.tieba.baidu.com/tb/static-album/img/mouseright.cur\"), pointer"});
-                    }
+                    mousePosition=(e.pageX - i.left < w / 2) ? 0 : 1;
+                    o.css({"cursor":'url("'+imgres[mousePosition]+'"), pointer'});
                 }).mouseout(function(){
                     o.css({"cursor":"pointer"});
                 }).click(function(event){
@@ -326,17 +325,17 @@ var hostname=location.hostname,hostList=['music.baidu.com','y.baidu.com'];
     }
     function showDownloadHtml(opt){
         var boxs=songInfo['songbox'],icons=[
-            'http://api.duoluohua.com/api/dumusic/images/downloadicon.png',
+            'http://bcs.duapp.com/opensource/images/appimg/min_red_download.png',
             'http://tieba.baidu.com/tb/static-ihome/img/loading2.gif'
         ],titles=['百度音乐助手 - 有一份田','数据正在加载中...'];
         for(var i=0;i<boxs.length;i++){
             var e=boxs[i],o=$(e),id=o.attr('data-id'),url='javascript:;',index=1;
-            if(e.finish){continue;}
+            if(e.queryFinish){continue;}
             var box=e.box || $('<span style="margin:0px 5px;"/>').insertAfter(o.find('span.title'));
             if(opt && opt[id]){
                 url=getDownloadUrl(o,id,opt[id]['link']);
                 index=0;
-                e.finish=true;
+                e.queryFinish=true;
             }
             box.html('<a href="'+url+'" title="'+titles[index]+'"><img src="'+icons[index]+'" alt="'+titles[index]+'"></a>');
             e.box=box;
@@ -382,6 +381,8 @@ function googleAnalytics(){
 	loadJs(js);
 }
 googleAnalytics();
+
+
 
 
 
