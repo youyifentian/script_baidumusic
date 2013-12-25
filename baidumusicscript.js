@@ -96,9 +96,9 @@ var $=unsafeWindow.$;
 		var id=opt.id,title=opt.title,artist=opt.artist,
 		    url='http://musicmini.baidu.com/app/link/getLinks.php?linkType=1&isLogin=1&clientVer=8.2.10.23&isHq=1&songAppend=&isCloud=0&hasMV=1&songId='+id+'&songTitle='+title+'&songArtist='+artist;
 		GM_xmlhttpRequest({
-			method: 'GET',
-			url: url,
-			onload: function(response) {
+			"method":"GET",
+            "url":url,
+            "onload":function(response) {
 				showDownHtml(node,0,JSON.parse(response.responseText));
 			},
 			onerror: function(response) {
@@ -125,9 +125,8 @@ var $=unsafeWindow.$;
 		};
 	}
 	function formatSongInfo(file){
-		var url=file.url,format=file.format.toLowerCase(),
-		    size=file.size,rate=file.kbps,i=0,
-		    ratetitle=['无 损','超 高','高 质','标 准','低 质','其 他'];
+		var url=file.url,format=file.format.toLowerCase(),size=file.size,
+        rate=file.kbps,i=0,ratetitle=['无 损','超 高','高 质','标 准','低 质','其 他'];
 		if(rate>320 && format!="mp3"){
 			i=0;
 		}else if(rate>256 && rate<=320){
@@ -155,8 +154,8 @@ var $=unsafeWindow.$;
         filesInfo=opt ? setSongsInfo(opt) : {};
 		var msg=[
 			'',
-		    '数据赶来中',
-			'请求出错,请重试或检查是否为最新版本',
+            '数据赶来中',
+            '请求出错,请重试或检查是否为最新版本',
 			'请求超时,请刷新页面重试',
 			'您的油猴子扩展暂时不支持该脚本,请更新扩展或脚本到最新版本'
 		],text=msg[index],html=makeHtml(filesInfo,text,index-1);
@@ -194,7 +193,7 @@ var $=unsafeWindow.$;
 	}
     function showAlbumImg(){
         var url='http://tingapi.ting.baidu.com/v1/restserver/ting?method=baidu.ting.song.play&songid='+songInfo['id'],
-        httpHwnd=null,mousePosition=0,albumImgKey=['pic_small','pic_big','pic_premium','pic_huge','pic_radio'],
+        httpHwnd=null,mousePosition=0,albumImgKey=['pic_small','pic_big','pic_radio','pic_premium','pic_huge'],
         imgres=[
             APPCFG['imgres']['mouseleft'],//'http://static.tieba.baidu.com/tb/static-album/img/mouseleft.cur',
             APPCFG['imgres']['mouseright'],//'http://static.tieba.baidu.com/tb/static-album/img/mouseright.cur',
@@ -257,21 +256,20 @@ var $=unsafeWindow.$;
             loadImg();
         }else{
             httpHwnd=GM_xmlhttpRequest({
-                method: 'GET',
-			    url: url,
-			    onload: function(response) {
+                "method":"GET",
+                "url":url,
+                "onload":function(response) {
                     var html=response.responseText,o=JSON.parse(html);
 				    if(o.error_code=='22000'){
                         var C=o.songinfo;
-                        for(var _ in C){
-                            if (C.hasOwnProperty(_)) {
-                                if($.inArray(_,albumImgKey)>-1 && isUrl(C[_])){
-                                    albumImgCache.push(C[_]);
-                                }
+                        for(var i=0;i<albumImgKey.length;i++){
+                            var _=albumImgKey[i];
+                            if(isUrl(C[_])){
+                                 albumImgCache.push(C[_]);
                             }
                         }
                     }
-                    if(!$.inArray(filesInfo.albumImg,albumImgCache)){
+                    if($.inArray(filesInfo.albumImg,albumImgCache)==-1){
                         albumImgCache.push(filesInfo.albumImg);
                     }
                     loadImg();
