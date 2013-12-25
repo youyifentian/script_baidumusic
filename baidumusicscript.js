@@ -12,11 +12,14 @@
 // @modified    17/12/2013
 // @include     http://music.baidu.com/song/*
 // @include     http://y.baidu.com/*
+// @resource loadingimg_1 http://tieba.baidu.com/tb/img/loading.gif
+// @resource loadingimg_2 http://tieba.baidu.com/tb/static-ihome/img/loading2.gif
+// @resource downimg http://bcs.duapp.com/opensource/images/appimg/min_red_download.png
 // @grant       GM_xmlhttpRequest
+// @grant       GM_getResourceURL
 // @run-at      document-end
 // @version     1.2.5
 // ==/UserScript==
-
 
 
 
@@ -32,13 +35,32 @@
  * */
 
 
-var APPNAME='百度音乐助手';
-var VERSION='1.2.5';
-var t=Math.random();
+var APPCFG={
+    "appname":"百度音乐助手",
+    "version":"1.2.5",
+    "hostname":location.hostname,
+    "hostlist":['music.baidu.com','y.baidu.com'],
+    "imgres":{
+        "loadingimg_1":"",
+        "loadingimg_2":"",
+        "mouseleft":"http://static.tieba.baidu.com/tb/static-album/img/mouseleft.cur",
+        "mouseright":"http://static.tieba.baidu.com/tb/static-album/img/mouseright.cur",
+        "downimg":""
+    }
+};
+var t=new Date().getTime();
 var $=unsafeWindow.$;
-var hostname=location.hostname,hostList=['music.baidu.com','y.baidu.com'];
 (function(){
-    if($.inArray(hostname,hostList)!=0){return;}
+    var O=APPCFG['imgres'];
+    for(var _ in O){
+        if(O.hasOwnProperty(_)){
+            var S = O[_];
+            APPCFG['imgres'][_]=isUrl(S) ? S : GM_getResourceURL(_);
+        }
+    }
+})();
+(function(){
+    if($.inArray(APPCFG['hostname'],APPCFG['hostlist'])!=0){return;}
     var filesInfo={},albumImgCache=[],albumImgIndex=0,
     modalJS=getModalJs(),songInfo=getSongInfo();
     loadJs(modalJS);
@@ -139,7 +161,7 @@ var hostname=location.hostname,hostList=['music.baidu.com','y.baidu.com'];
 			'您的油猴子扩展暂时不支持该脚本,请更新扩展或脚本到最新版本'
 		],text=msg[index],html=makeHtml(filesInfo,text,index-1);
 		node.innerHTML=html;
-		node.title=APPNAME;
+		node.title=APPCFG['appname'];
         checkUpdate();
         if(opt){
             $(node).find('a#showalbumimg').click(function(){
@@ -174,9 +196,9 @@ var hostname=location.hostname,hostList=['music.baidu.com','y.baidu.com'];
         var url='http://tingapi.ting.baidu.com/v1/restserver/ting?method=baidu.ting.song.play&songid='+songInfo['id'],
         httpHwnd=null,mousePosition=0,albumImgKey=['pic_small','pic_big','pic_premium','pic_huge','pic_radio'],
         imgres=[
-            'http://static.tieba.baidu.com/tb/static-album/img/mouseleft.cur',
-            'http://static.tieba.baidu.com/tb/static-album/img/mouseright.cur',
-            'http://tieba.baidu.com/tb/img/loading.gif'    
+            APPCFG['imgres']['mouseleft'],//'http://static.tieba.baidu.com/tb/static-album/img/mouseleft.cur',
+            APPCFG['imgres']['mouseright'],//'http://static.tieba.baidu.com/tb/static-album/img/mouseright.cur',
+            APPCFG['imgres']['loadingimg_1']//'http://tieba.baidu.com/tb/img/loading.gif'    
         ],modal= new $.modal({show: true}),box=$('<div/>').css({
             "left":"50%",
             "top":"50%",
@@ -263,23 +285,21 @@ var hostname=location.hostname,hostList=['music.baidu.com','y.baidu.com'];
 })();
 
 (function(){
-    if($.inArray(hostname,hostList)!=1){return;}
+    if($.inArray(APPCFG['hostname'],APPCFG['hostlist'])!=1){return;}
     var songInfo={"songids":[],"songbox":[]},domBox=[];
     $('#pageWrapper').bind('DOMNodeInserted',function(e){
-        if(e.target.tagName=='DIV'){
-            var o=$(this).find('.widget-playlist');
-            if(o.length){
-                var tmpBox=[];
-                $.each(o,function(k,v){
-                    if($.inArray(v,domBox)==-1){
-                        domBox.push(v);
-                        tmpBox.push(v);
-                    }
-                });
-                if(tmpBox.length){
-                    var tmpInfo=getSongInfo(tmpBox);
-                    setTimeout(function(){querySong(tmpInfo);},0);
+        var o=$(this).find('.widget-playlist');
+        if(o.length){
+            var tmpBox=[];
+            $.each(o,function(k,v){
+                if($.inArray(v,domBox)==-1){
+                    domBox.push(v);
+                    tmpBox.push(v);
                 }
+            });
+            if(tmpBox.length){
+                var tmpInfo=getSongInfo(tmpBox);
+                setTimeout(function(){querySong(tmpInfo);},0);
             }
         }
     });
@@ -319,14 +339,14 @@ var hostname=location.hostname,hostList=['music.baidu.com','y.baidu.com'];
     function getDownloadUrl(o,id,url){
         var data=o.attr('data-song'),obj=JSON.parse(data),baseurl='http://music.baidu.com/data/music/file?link=';
         if(obj['is_charge']==='0' && obj['artist_info']['fr_type']=='2'){
-            url='http://y.baidu.com/data/song/download?songId='+id+'&myfn='+encodeURIComponent(obj['title']+'.mp3');
+            //url='http://y.baidu.com/data/song/download?songId='+id+'&myfn='+encodeURIComponent(obj['title']+'.mp3');
         }
         return baseurl+encodeURIComponent(url);
     }
     function showDownloadHtml(opt){
         var boxs=songInfo['songbox'],icons=[
-            'http://bcs.duapp.com/opensource/images/appimg/min_red_download.png',
-            'http://tieba.baidu.com/tb/static-ihome/img/loading2.gif'
+            APPCFG['imgres']['downimg'],//'http://bcs.duapp.com/opensource/images/appimg/min_red_download.png',
+            APPCFG['imgres']['loadingimg_2']//'http://tieba.baidu.com/tb/static-ihome/img/loading2.gif'
         ],titles=['百度音乐助手 - 有一份田','数据正在加载中...'];
         for(var i=0;i<boxs.length;i++){
             var e=boxs[i],o=$(e),id=o.attr('data-id'),url='javascript:;',index=1;
@@ -357,7 +377,7 @@ function isUrl(url) {
     return /^(http|https):\/\/([\w-]+(:[\w-]+)?@)?[\w-]+(\.[\w-]+)+(:[\d]+)?([#\/\?][^\s<>;"\']*)?$/.test(url);
 }
 function getUpdateUrl(action,type){
-	return 'http://app.duoluohua.com/update?action='+action+'&system=script&appname=baidumusicscript&apppot=scriptjs&frompot=songweb&type='+type+'&version='+VERSION+'&t='+t;
+	return 'http://app.duoluohua.com/update?action='+action+'&system=script&appname=baidumusicscript&apppot=scriptjs&frompot=songweb&type='+type+'&version='+APPCFG['version']+'&t='+t;
 }
 function loadJs(js){
 	var oHead=document.getElementsByTagName('head')[0],
@@ -377,14 +397,10 @@ function googleAnalytics(){
 	js+="	s.parentNode.insertBefore(ga, s)";
 	js+="}";
 	js+="googleAnalytics();";
-	js+="_gaq.push(['_trackEvent','query_gm',String('"+VERSION+"')]);";
+	js+="_gaq.push(['_trackEvent','query_gm',String('"+APPCFG['version']+"')]);";
 	loadJs(js);
 }
 googleAnalytics();
-
-
-
-
 
 
 
