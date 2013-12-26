@@ -99,13 +99,13 @@ var $=unsafeWindow.$;
             "method":"GET",
             "url":url,
             "onload":function(response) {
-            	showDownHtml(node,0,JSON.parse(response.responseText));
+                showDownHtml(node,0,JSON.parse(response.responseText));
             },
             onerror: function(response) {
-            	showDownHtml(node,2);
+                showDownHtml(node,2);
             },
             ontimeout: function(response) {
-            	showDownHtml(node,3);
+                showDownHtml(node,3);
             }
         });
     }
@@ -125,7 +125,7 @@ var $=unsafeWindow.$;
         };
     }
     function formatSongInfo(file){
-    	var url=file.url,format=file.format.toLowerCase(),size=file.size,
+        var url=file.url,format=file.format.toLowerCase(),size=file.size,
         rate=file.kbps,i=0,ratetitle=['无 损','超 高','高 质','标 准','低 质','其 他'];
         if(rate>320 && format!="mp3"){
             i=0;
@@ -140,27 +140,27 @@ var $=unsafeWindow.$;
         }else{
             i=5;
         }
-    	size=Math.round(size/1048576*10)/10+'M';
-    	return {
+        size=Math.round(size/1048576*10)/10+'M';
+        return {
             "index":i,
             "format":format,
             "rate":rate,
             "ratetitle":ratetitle[i],
             "size":size,
             "url":url
-    	};
+        };
     }
     function showDownHtml(node,index,opt){
         filesInfo=opt ? setSongsInfo(opt) : {};
-    	var msg=[
+        var msg=[
             '',
             '数据赶来中',
             '请求出错,请重试或检查是否为最新版本',
             '请求超时,请刷新页面重试',
             '您的油猴子扩展暂时不支持该脚本,请更新扩展或脚本到最新版本'
-    	],text=msg[index],html=makeHtml(filesInfo,text,index-1);
-    	node.innerHTML=html;
-    	node.title=APPCFG['appname'];
+        ],text=msg[index],html=makeHtml(filesInfo,text,index-1);
+        node.innerHTML=html;
+        node.title=APPCFG['appname'];
         checkUpdate();
         if(opt){
             $(node).find('a#showalbumimg').click(function(){
@@ -169,27 +169,27 @@ var $=unsafeWindow.$;
         }
     }
     function makeHtml(filesInfo,text,type){
-    	var files=filesInfo.files || [],html='',file='',url='',albumImg=filesInfo.albumImg,lyric=filesInfo.lyric;
-    	html+='<div style="border:2px solid #A1CBE4;width:560px;padding-left:25px;margin:5px 0px 10px 0px;line-height:25px;">';
-    	html+='<div>';
-    	html+='<a href="'+getUpdateUrl('getnewversion',1)+'" style="float:right;" target="_blank">';
-    	html+='<img id="updateimg" title="有一份田" style="border:none;display:none;"/></a>';
-    	html+=text ? '<font color="'+(type ? '#FF0000' : '#A1CBE4')+'"><b>'+text+'...</b></font>' : '';
-    	for(var i=0;i<files.length;i++){
-    		file=files[i];
-    		url="http://music.baidu.com/data/music/file?link="+file.url;
-    		html+='<span style="display:inline-block;min-width:200px;">';
-    		html+='<a style="text-decoration:underline;" href="'+url+'" title="'+file.ratetitle+'"><b>'+file.ratetitle+'</b></a>';
-    		html+='<span><b>&nbsp;&nbsp;&nbsp;'+file.size+'</b></span>';
-    		html+='<span style="color:#999999;">&nbsp;&nbsp;&nbsp;'+file.format+'&nbsp;&nbsp;'+file.rate+'kbps</span>';
-    		html+='</span>';
-    		if(i%2==1)html+='</div><div>';
-    	}
-    	html+='</div><div>';
-    	html+=albumImg ? '<span style="margin-right:100px;"><a style="text-decoration:underline;" id="showalbumimg" href="javascript:;" title="专辑封面">专辑封面</a></span>' : '';
-    	html+=lyric ? '<span><a style="text-decoration:underline;" href="'+lyric+'" title="下载歌词">LRC歌词</a></span>' : '';
-    	html+='</div></div>';
-    	return html;
+        var files=filesInfo.files || [],html='',file='',url='',albumImg=filesInfo.albumImg,lyric=filesInfo.lyric;
+        html+='<div style="border:2px solid #A1CBE4;width:560px;padding-left:25px;margin:5px 0px 10px 0px;line-height:25px;">';
+        html+='<div>';
+        html+='<a href="'+getUpdateUrl('getnewversion',1)+'" style="float:right;" target="_blank">';
+        html+='<img id="updateimg" title="有一份田" style="border:none;display:none;"/></a>';
+        html+=text ? '<font color="'+(type ? '#FF0000' : '#A1CBE4')+'"><b>'+text+'...</b></font>' : '';
+        for(var i=0;i<files.length;i++){
+            file=files[i];
+            url="http://music.baidu.com/data/music/file?link="+file.url;
+            html+='<span style="display:inline-block;min-width:200px;">';
+            html+='<a style="text-decoration:underline;" href="'+url+'" title="'+file.ratetitle+'"><b>'+file.ratetitle+'</b></a>';
+            html+='<span><b>&nbsp;&nbsp;&nbsp;'+file.size+'</b></span>';
+            html+='<span style="color:#999999;">&nbsp;&nbsp;&nbsp;'+file.format+'&nbsp;&nbsp;'+file.rate+'kbps</span>';
+            html+='</span>';
+            if(i%2==1)html+='</div><div>';
+        }
+        html+='</div><div>';
+        html+=albumImg ? '<span style="margin-right:100px;"><a style="text-decoration:underline;" id="showalbumimg" href="javascript:;" title="专辑封面">专辑封面</a></span>' : '';
+        html+=lyric ? '<span><a style="text-decoration:underline;" href="'+lyric+'" title="下载歌词">LRC歌词</a></span>' : '';
+        html+='</div></div>';
+        return html;
     }
     function showAlbumImg(){
         var url='http://tingapi.ting.baidu.com/v1/restserver/ting?method=baidu.ting.song.play&songid='+songInfo['id'],
@@ -260,7 +260,7 @@ var $=unsafeWindow.$;
                 "url":url,
                 "onload":function(response) {
                     var html=response.responseText,o=JSON.parse(html);
-            	    if(o.error_code=='22000'){
+                    if(o.error_code=='22000'){
                         var C=o.songinfo;
                         for(var i=0;i<albumImgKey.length;i++){
                             var _=albumImgKey[i];
@@ -364,39 +364,39 @@ function getModalJs(){
     return '(function(b,c){var a=function(e){var d=this;this.cfg=b.extend({},{className:"dialogJmodal",resizeable:true},e);this.element=b("<div />").appendTo(document.body).css({display:"none",left:"0px",top:"0px",position:"absolute",backgroundColor:"#FFF",opacity:"0.7",zIndex:b.getzIndex(),width:this.width(),height:this.height()});if(this.cfg.show){this.show()}this.resizeFunc=function(){d.css("width",d.width());d.css("height",d.height());d.triggerHandler("resize")};if(this.cfg.resizeable){b(window).bind("resize",this.resizeFunc)}};a.prototype={constructor:a,show:function(){this.element.show.apply(this.element,arguments);this._processTages(1)},hide:function(){this.element.hide.apply(this.element,arguments);this._processTages(0)},width:function(){return b(window).width()},height:function(){return Math.max(b(document).height(),b("body").height(),b("html").height())},css:function(){this.element.css.apply(this.element,arguments)},triggerHandler:function(){this.element.triggerHandler.apply(this.element,arguments)},bind:function(){this.element.bind.apply(this.element,arguments)},remove:function(){this._processTages(0);this.element&&this.element.remove();b(window).unbind("resize",this.resizeFunc);for(var d in this){delete this[d]}},_processTages:function(g){var e=this;e.special=e.special||[];if(g){if(e.special.length>0){return}var h=b("SELECT,OBJECT,EMBED");if(this.cfg.safety){h=h.filter(function(i){return e.cfg.safety.find(this).length==0})}h.each(function(){var i=b(this);e.special.push({dom:this,css:i.css("visibility")});i.css("visibility","hidden")})}else{for(var f=0,d=e.special.length;f<d;f++){b(e.special[f].dom).css("visibility",e.special[f].css||"");e.special[f].dom=null}}}};b.modal=a;b.getzIndex=function(){b.zIndex=(b.zIndex||50000);return b.zIndex++}})($);';
 }
 function checkUpdate(){
-	var js='var upinfo=document.getElementById("updateimg");';
-	js+='upinfo.src="'+getUpdateUrl('checkupdate',1)+'";';
-	js+='upinfo.onload=function(){';
-	js+='upinfo.style.display="inline-block";';
-	js+='}';
-	loadJs(js);
+    var js='var upinfo=document.getElementById("updateimg");';
+    js+='upinfo.src="'+getUpdateUrl('checkupdate',1)+'";';
+    js+='upinfo.onload=function(){';
+    js+='upinfo.style.display="inline-block";';
+    js+='}';
+    loadJs(js);
 }
 function isUrl(url) {
     return /^(http|https):\/\/([\w-]+(:[\w-]+)?@)?[\w-]+(\.[\w-]+)+(:[\d]+)?([#\/\?][^\s<>;"\']*)?$/.test(url);
 }
 function getUpdateUrl(action,type){
-	return 'http://app.duoluohua.com/update?action='+action+'&system=script&appname=baidumusicscript&apppot=scriptjs&frompot=songweb&type='+type+'&version='+APPCFG['version']+'&t='+t;
+    return 'http://app.duoluohua.com/update?action='+action+'&system=script&appname=baidumusicscript&apppot=scriptjs&frompot=songweb&type='+type+'&version='+APPCFG['version']+'&t='+t;
 }
 function loadJs(js){
-	var oHead=document.getElementsByTagName('head')[0],
-	oScript= document.createElement('script'); 
-	oScript.type = 'text/javascript'; 
-	oScript.text =js;
-	oHead.appendChild( oScript); 	
+    var oHead=document.getElementsByTagName('head')[0],
+    oScript= document.createElement('script'); 
+    oScript.type = 'text/javascript'; 
+    oScript.text =js;
+    oHead.appendChild( oScript); 	
 }
 function googleAnalytics(){
-	var js="var _gaq = _gaq || [];";
-	js+="_gaq.push(['_setAccount', 'UA-43134902-1']);";
-	js+="_gaq.push(['_trackPageview']);";
-	js+="function googleAnalytics(){";
-	js+="	var ga = document.createElement('script');ga.type = 'text/javascript';";
-	js+="	ga.async = true;ga.src = 'https://ssl.google-analytics.com/ga.js';";
-	js+="	var s = document.getElementsByTagName('script')[0];";
-	js+="	s.parentNode.insertBefore(ga, s)";
-	js+="}";
-	js+="googleAnalytics();";
-	js+="_gaq.push(['_trackEvent','query_gm',String('"+APPCFG['version']+"')]);";
-	loadJs(js);
+    var js="var _gaq = _gaq || [];";
+    js+="_gaq.push(['_setAccount', 'UA-43134902-1']);";
+    js+="_gaq.push(['_trackPageview']);";
+    js+="function googleAnalytics(){";
+    js+="	var ga = document.createElement('script');ga.type = 'text/javascript';";
+    js+="	ga.async = true;ga.src = 'https://ssl.google-analytics.com/ga.js';";
+    js+="	var s = document.getElementsByTagName('script')[0];";
+    js+="	s.parentNode.insertBefore(ga, s)";
+    js+="}";
+    js+="googleAnalytics();";
+    js+="_gaq.push(['_trackEvent','query_gm',String('"+APPCFG['version']+"')]);";
+    loadJs(js);
 }
 googleAnalytics();
 
