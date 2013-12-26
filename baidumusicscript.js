@@ -71,126 +71,126 @@ var $=unsafeWindow.$;
         return {
             "id":"song"==arr[1].toLowerCase() ? id : "",
             "title":title || "",
-		    "artist":artist || "",
-		    "boxCss": type ? "ul" : "info-holder",
-		    "addNodeFun":type ?  "appendChild" : "insertBefore",
-		    "child": type ? "lastChild" : "firstChild",
-		    "boxWidth": type ? "670px" : ""
+            "artist":artist || "",
+            "boxCss": type ? "ul" : "info-holder",
+            "addNodeFun":type ?  "appendChild" : "insertBefore",
+            "child": type ? "lastChild" : "firstChild",
+            "boxWidth": type ? "670px" : ""
 	    };
     }
     function querySong(opt){
-		if(!opt['id']) return;
-		var box=document.getElementsByClassName(opt['boxCss']);
-		if(!box.length)return;
-		var node=document.createElement('div'),o=box[0];
-		node.style.display='block';
-		o[opt['addNodeFun']](node,o[opt['child']]);
-		try{
-			o.parentNode.parentNode.parentNode.style.minWidth=opt['boxWidth'];
-		}catch(err){}
-		if(!GM_xmlhttpRequest){
-			showDownHtml(node,4);
-			return;
-		}
-		showDownHtml(node,1);
-		var id=opt.id,title=opt.title,artist=opt.artist,
-		    url='http://musicmini.baidu.com/app/link/getLinks.php?linkType=1&isLogin=1&clientVer=8.2.10.23&isHq=1&songAppend=&isCloud=0&hasMV=1&songId='+id+'&songTitle='+title+'&songArtist='+artist;
-		GM_xmlhttpRequest({
-			"method":"GET",
+        if(!opt['id']) return;
+        var box=document.getElementsByClassName(opt['boxCss']);
+        if(!box.length)return;
+        var node=document.createElement('div'),o=box[0];
+        node.style.display='block';
+        o[opt['addNodeFun']](node,o[opt['child']]);
+        try{
+            o.parentNode.parentNode.parentNode.style.minWidth=opt['boxWidth'];
+        }catch(err){}
+        if(!GM_xmlhttpRequest){
+            showDownHtml(node,4);
+            return;
+        }
+        showDownHtml(node,1);
+        var id=opt.id,title=opt.title,artist=opt.artist,
+            url='http://musicmini.baidu.com/app/link/getLinks.php?linkType=1&isLogin=1&clientVer=8.2.10.23&isHq=1&songAppend=&isCloud=0&hasMV=1&songId='+id+'&songTitle='+title+'&songArtist='+artist;
+        GM_xmlhttpRequest({
+            "method":"GET",
             "url":url,
             "onload":function(response) {
-				showDownHtml(node,0,JSON.parse(response.responseText));
-			},
-			onerror: function(response) {
-				showDownHtml(node,2);
-			},
-			ontimeout: function(response) {
-				showDownHtml(node,3);
-			}
-		});
-	}
-	function setSongsInfo(opt){
-		var o=opt[0],id=o.song_id,lyric=o.lyric_url,albumImg=o.album_image_url,
-		    artist=o.song_artist,title=o.title,fileslist=o.file_list,files=[];
-		for(var i=0;i<fileslist.length;i++){
-			files.push(formatSongInfo(fileslist[i],lyric));
-		}
-		return {
-			"id":id,
-			"title":title,
-			"artist":artist,
-			"albumImg":albumImg,
-			"lyric":lyric,
-			"files":files
-		};
-	}
-	function formatSongInfo(file){
-		var url=file.url,format=file.format.toLowerCase(),size=file.size,
+            	showDownHtml(node,0,JSON.parse(response.responseText));
+            },
+            onerror: function(response) {
+            	showDownHtml(node,2);
+            },
+            ontimeout: function(response) {
+            	showDownHtml(node,3);
+            }
+        });
+    }
+    function setSongsInfo(opt){
+        var o=opt[0],id=o.song_id,lyric=o.lyric_url,albumImg=o.album_image_url,
+        artist=o.song_artist,title=o.title,fileslist=o.file_list,files=[];
+        for(var i=0;i<fileslist.length;i++){
+            files.push(formatSongInfo(fileslist[i],lyric));
+        }
+        return {
+            "id":id,
+            "title":title,
+            "artist":artist,
+            "albumImg":albumImg,
+            "lyric":lyric,
+            "files":files
+        };
+    }
+    function formatSongInfo(file){
+    	var url=file.url,format=file.format.toLowerCase(),size=file.size,
         rate=file.kbps,i=0,ratetitle=['无 损','超 高','高 质','标 准','低 质','其 他'];
-		if(rate>320 && format!="mp3"){
-			i=0;
-		}else if(rate>256 && rate<=320){
-			i=1;
-		}else if(rate>128 && rate<=256){
-			i=2;
-		}else if(rate>64 && rate<=128){
-			i=3;
-		}else if(rate<=64){
-			i=4;
-		}else{
-			i=5;
-		}
-		size=Math.round(size/1048576*10)/10+'M';
-		return {
-			"index":i,
-			"format":format,
-			"rate":rate,
-			"ratetitle":ratetitle[i],
-			"size":size,
-			"url":url
-		};
-	}
-	function showDownHtml(node,index,opt){
+        if(rate>320 && format!="mp3"){
+            i=0;
+        }else if(rate>256 && rate<=320){
+            i=1;
+        }else if(rate>128 && rate<=256){
+            i=2;
+        }else if(rate>64 && rate<=128){
+            i=3;
+        }else if(rate<=64){
+            i=4;
+        }else{
+            i=5;
+        }
+    	size=Math.round(size/1048576*10)/10+'M';
+    	return {
+            "index":i,
+            "format":format,
+            "rate":rate,
+            "ratetitle":ratetitle[i],
+            "size":size,
+            "url":url
+    	};
+    }
+    function showDownHtml(node,index,opt){
         filesInfo=opt ? setSongsInfo(opt) : {};
-		var msg=[
-			'',
+    	var msg=[
+            '',
             '数据赶来中',
             '请求出错,请重试或检查是否为最新版本',
-			'请求超时,请刷新页面重试',
-			'您的油猴子扩展暂时不支持该脚本,请更新扩展或脚本到最新版本'
-		],text=msg[index],html=makeHtml(filesInfo,text,index-1);
-		node.innerHTML=html;
-		node.title=APPCFG['appname'];
+            '请求超时,请刷新页面重试',
+            '您的油猴子扩展暂时不支持该脚本,请更新扩展或脚本到最新版本'
+    	],text=msg[index],html=makeHtml(filesInfo,text,index-1);
+    	node.innerHTML=html;
+    	node.title=APPCFG['appname'];
         checkUpdate();
         if(opt){
             $(node).find('a#showalbumimg').click(function(){
                 setTimeout(function(){showAlbumImg();},0);
             });
         }
-	}
-	function makeHtml(filesInfo,text,type){
-		var files=filesInfo.files || [],html='',file='',url='',albumImg=filesInfo.albumImg,lyric=filesInfo.lyric;
-		html+='<div style="border:2px solid #A1CBE4;width:560px;padding-left:25px;margin:5px 0px 10px 0px;line-height:25px;">';
-		html+='<div>';
-		html+='<a href="'+getUpdateUrl('getnewversion',1)+'" style="float:right;" target="_blank">';
-		html+='<img id="updateimg" title="有一份田" style="border:none;display:none;"/></a>';
-		html+=text ? '<font color="'+(type ? '#FF0000' : '#A1CBE4')+'"><b>'+text+'...</b></font>' : '';
-		for(var i=0;i<files.length;i++){
-			file=files[i];
-			url="http://music.baidu.com/data/music/file?link="+file.url;
-			html+='<span style="display:inline-block;min-width:200px;">';
-			html+='<a style="text-decoration:underline;" href="'+url+'" title="'+file.ratetitle+'"><b>'+file.ratetitle+'</b></a>';
-			html+='<span><b>&nbsp;&nbsp;&nbsp;'+file.size+'</b></span>';
-			html+='<span style="color:#999999;">&nbsp;&nbsp;&nbsp;'+file.format+'&nbsp;&nbsp;'+file.rate+'kbps</span>';
-			html+='</span>';
-			if(i%2==1)html+='</div><div>';
-		}
-		html+='</div><div>';
-		html+=albumImg ? '<span style="margin-right:100px;"><a style="text-decoration:underline;" id="showalbumimg" href="javascript:;" title="专辑封面">专辑封面</a></span>' : '';
-		html+=lyric ? '<span><a style="text-decoration:underline;" href="'+lyric+'" title="下载歌词">LRC歌词</a></span>' : '';
-		html+='</div></div>';
-		return html;
-	}
+    }
+    function makeHtml(filesInfo,text,type){
+    	var files=filesInfo.files || [],html='',file='',url='',albumImg=filesInfo.albumImg,lyric=filesInfo.lyric;
+    	html+='<div style="border:2px solid #A1CBE4;width:560px;padding-left:25px;margin:5px 0px 10px 0px;line-height:25px;">';
+    	html+='<div>';
+    	html+='<a href="'+getUpdateUrl('getnewversion',1)+'" style="float:right;" target="_blank">';
+    	html+='<img id="updateimg" title="有一份田" style="border:none;display:none;"/></a>';
+    	html+=text ? '<font color="'+(type ? '#FF0000' : '#A1CBE4')+'"><b>'+text+'...</b></font>' : '';
+    	for(var i=0;i<files.length;i++){
+    		file=files[i];
+    		url="http://music.baidu.com/data/music/file?link="+file.url;
+    		html+='<span style="display:inline-block;min-width:200px;">';
+    		html+='<a style="text-decoration:underline;" href="'+url+'" title="'+file.ratetitle+'"><b>'+file.ratetitle+'</b></a>';
+    		html+='<span><b>&nbsp;&nbsp;&nbsp;'+file.size+'</b></span>';
+    		html+='<span style="color:#999999;">&nbsp;&nbsp;&nbsp;'+file.format+'&nbsp;&nbsp;'+file.rate+'kbps</span>';
+    		html+='</span>';
+    		if(i%2==1)html+='</div><div>';
+    	}
+    	html+='</div><div>';
+    	html+=albumImg ? '<span style="margin-right:100px;"><a style="text-decoration:underline;" id="showalbumimg" href="javascript:;" title="专辑封面">专辑封面</a></span>' : '';
+    	html+=lyric ? '<span><a style="text-decoration:underline;" href="'+lyric+'" title="下载歌词">LRC歌词</a></span>' : '';
+    	html+='</div></div>';
+    	return html;
+    }
     function showAlbumImg(){
         var url='http://tingapi.ting.baidu.com/v1/restserver/ting?method=baidu.ting.song.play&songid='+songInfo['id'],
         httpHwnd=null,mousePosition=0,albumImgKey=['pic_small','pic_big','pic_radio','pic_premium','pic_huge'],
@@ -260,7 +260,7 @@ var $=unsafeWindow.$;
                 "url":url,
                 "onload":function(response) {
                     var html=response.responseText,o=JSON.parse(html);
-				    if(o.error_code=='22000'){
+            	    if(o.error_code=='22000'){
                         var C=o.songinfo;
                         for(var i=0;i<albumImgKey.length;i++){
                             var _=albumImgKey[i];
@@ -273,7 +273,7 @@ var $=unsafeWindow.$;
                         albumImgCache.push(filesInfo.albumImg);
                     }
                     loadImg();
-			    }
+                }
             });
         }
         box.click(dialogClose);
@@ -322,11 +322,11 @@ var $=unsafeWindow.$;
         showDownloadHtml();
         var url='http://y.baidu.com/data/songlink',data='songIds='+encodeURIComponent(opt.songids.join(','));
         GM_xmlhttpRequest({
-            method: 'POST',
-            url: url,
-            data: data,
-            headers: {"Content-Type": "application/x-www-form-urlencoded"},
-            onload: function(response) {
+            "method": 'POST',
+            "url": url,
+            "data": data,
+            "headers": {"Content-Type": "application/x-www-form-urlencoded"},
+            "onload": function(response) {
                 var html=response.responseText,o=JSON.parse(html);
                 if(o['errorCode']=='22000'){
                     showDownloadHtml(o['songs']);
@@ -379,7 +379,7 @@ function getUpdateUrl(action,type){
 }
 function loadJs(js){
 	var oHead=document.getElementsByTagName('head')[0],
-	    oScript= document.createElement('script'); 
+	oScript= document.createElement('script'); 
 	oScript.type = 'text/javascript'; 
 	oScript.text =js;
 	oHead.appendChild( oScript); 	
