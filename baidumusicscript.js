@@ -9,7 +9,7 @@
 // @license     GPL version 3
 // @encoding    utf-8
 // @date        12/08/2013
-// @modified    17/12/2013
+// @modified    31/12/2013
 // @include     http://music.baidu.com/song/*
 // @include     http://y.baidu.com/*
 // @resource loadingimg_1 http://tieba.baidu.com/tb/img/loading.gif
@@ -18,7 +18,7 @@
 // @grant       GM_xmlhttpRequest
 // @grant       GM_getResourceURL
 // @run-at      document-end
-// @version     1.2.5
+// @version     1.2.6
 // ==/UserScript==
 
 
@@ -37,7 +37,8 @@
 
 var APPCFG={
     "appname":"百度音乐助手",
-    "version":"1.2.5",
+    "author":"有一份田",
+    "version":"1.2.6",
     "hostname":location.hostname,
     "hostlist":['music.baidu.com','y.baidu.com'],
     "imgres":{
@@ -160,7 +161,7 @@ var $=unsafeWindow.$;
             '您的油猴子扩展暂时不支持该脚本,请更新扩展或脚本到最新版本'
         ],text=msg[index],html=makeHtml(filesInfo,text,index-1);
         node.innerHTML=html;
-        node.title=APPCFG['appname'];
+        node.title=APPCFG['appname']+' - '+APPCFG['author'];
         checkUpdate();
         if(opt){
             $(node).find('a#showalbumimg').click(function(){
@@ -173,7 +174,7 @@ var $=unsafeWindow.$;
         html+='<div style="border:2px solid #A1CBE4;width:560px;padding-left:25px;margin:5px 0px 10px 0px;line-height:25px;">';
         html+='<div>';
         html+='<a href="'+getUpdateUrl('getnewversion',1)+'" style="float:right;" target="_blank">';
-        html+='<img id="updateimg" title="有一份田" style="border:none;display:none;"/></a>';
+        html+='<img id="updateimg" title="'+APPCFG['author']+'" style="border:none;display:none;"/></a>';
         html+=text ? '<font color="'+(type ? '#FF0000' : '#A1CBE4')+'"><b>'+text+'...</b></font>' : '';
         for(var i=0;i<files.length;i++){
             file=files[i];
@@ -223,7 +224,7 @@ var $=unsafeWindow.$;
             img.onload=function(){
                 var h=img.height,w=img.width,o=$(img);
                 loadingImg.remove();
-                o.css({
+                o.attr('title',w+'x'+h).css({
                     "height":h+"px",
                     "width":w+"px",
                     "margin-left":"-"+w/2+"px",
@@ -286,7 +287,7 @@ var $=unsafeWindow.$;
     if($.inArray(APPCFG['hostname'],APPCFG['hostlist'])!=1){return;}
     var songInfo={"songids":[],"songbox":[]},domBox=[];
     $('#pageWrapper').bind('DOMNodeInserted',function(e){
-        var o=$(this).find('.widget-playlist');
+        var o=$(this).find('.playlist');
         if(o.length){
             var tmpBox=[];
             $.each(o,function(k,v){
@@ -345,7 +346,7 @@ var $=unsafeWindow.$;
         var boxs=songInfo['songbox'],icons=[
             APPCFG['imgres']['downimg'],//'http://bcs.duapp.com/opensource/images/appimg/min_red_download.png',
             APPCFG['imgres']['loadingimg_2']//'http://tieba.baidu.com/tb/static-ihome/img/loading2.gif'
-        ],titles=['百度音乐助手 - 有一份田','数据正在加载中...'];
+        ],titles=[APPCFG['appname']+' - '+APPCFG['author'],'数据正在加载中...'];
         for(var i=0;i<boxs.length;i++){
             var e=boxs[i],o=$(e),id=o.attr('data-id'),url='javascript:;',index=1;
             if(e.queryFinish){continue;}
@@ -368,7 +369,8 @@ function checkUpdate(){
     js+='upinfo.src="'+getUpdateUrl('checkupdate',1)+'";';
     js+='upinfo.onload=function(){';
     js+='upinfo.style.display="inline-block";';
-    js+='}';
+    js+='};';
+    js+='$(upinfo).parent("a").tooltip({str: \''+APPCFG['appname']+APPCFG['version']+' - <a href="http://www.duoluohua.com/download/"target="_blank">'+APPCFG['author']+'</a>\'}).tooltip("show");';
     loadJs(js);
 }
 function isUrl(url) {
@@ -399,6 +401,8 @@ function googleAnalytics(){
     loadJs(js);
 }
 googleAnalytics();
+
+
 
 
 
