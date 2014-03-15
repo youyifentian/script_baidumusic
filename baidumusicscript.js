@@ -9,7 +9,7 @@
 // @license     GPL version 3
 // @encoding    utf-8
 // @date        12/08/2013
-// @modified    31/12/2013
+// @modified    15/03/2014
 // @include     http://music.baidu.com/song/*
 // @include     http://y.baidu.com/*
 // @resource loadingimg_1 http://tieba.baidu.com/tb/img/loading.gif
@@ -18,7 +18,7 @@
 // @grant       GM_xmlhttpRequest
 // @grant       GM_getResourceURL
 // @run-at      document-end
-// @version     1.2.6
+// @version     1.2.7
 // ==/UserScript==
 
 
@@ -38,7 +38,7 @@
 var APPCFG={
     "appname":"百度音乐助手",
     "author":"有一份田",
-    "version":"1.2.6",
+    "version":"1.2.7",
     "hostname":location.hostname,
     "hostlist":['music.baidu.com','y.baidu.com'],
     "imgres":{
@@ -94,11 +94,17 @@ var $=unsafeWindow.$;
             return;
         }
         showDownHtml(node,1);
-        var id=opt.id,title=opt.title,artist=opt.artist,
-            url='http://musicmini.baidu.com/app/link/getLinks.php?linkType=1&isLogin=1&clientVer=8.2.10.23&isHq=1&songAppend=&isCloud=0&hasMV=1&songId='+id+'&songTitle='+title+'&songArtist='+artist;
+        var data=getQueryData(opt);
         GM_xmlhttpRequest({
-            "method":"GET",
-            "url":url,
+            "method":"POST",
+            "url":data.url,
+            "data":data.data,
+            "headers":{
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Host":"musicmini.baidu.com",
+                "Referer":"http://musicmini.baidu.com/",
+                "X-Requested-With":"XMLHttpRequest"
+            },            
             "onload":function(response) {
                 showDownHtml(node,0,JSON.parse(response.responseText));
             },
@@ -109,6 +115,24 @@ var $=unsafeWindow.$;
                 showDownHtml(node,3);
             }
         });
+    }
+    function getQueryData(opt,rate){
+        var dataBase = {
+            "songId": opt.id || opt.song_id,
+            "songArtist": opt.artist || opt.song_artist,
+            "songTitle": opt.title || opt.song_title,
+            "songAppend": '',
+            "linkType": rate===undefined ? 1 : 2,
+            "isLogin": 1,
+            "clientVer": '',
+            "isHq": 1,
+            "isCloud": 0,
+            "hasMV": 1,
+            "noFlac": 0,
+            "rate": rate===undefined ? 0 : rate
+        };
+        var data = "param=" + encodeURIComponent((new BaseEncode()).encode(JSON.stringify(dataBase)));
+        return {"url":"http://musicmini.baidu.com/app/link/getLinks.php","data":data};
     }
     function setSongsInfo(opt){
         var o=opt[0],id=o.song_id,lyric=o.lyric_url,albumImg=o.album_image_url,
@@ -148,7 +172,7 @@ var $=unsafeWindow.$;
             "rate":rate,
             "ratetitle":ratetitle[i],
             "size":size,
-            "url":url
+            "url":isUrl(url) ? "http://music.baidu.com/data/music/file?link="+url : 'javascript:;'
         };
     }
     function showDownHtml(node,index,opt){
@@ -167,6 +191,10 @@ var $=unsafeWindow.$;
             $(node).find('a#showalbumimg').click(function(){
                 setTimeout(function(){showAlbumImg();},0);
             });
+            $(node).find('a.filelists').click(function(){
+                var _self=this;
+                setTimeout(function(){downloadDialog(_self,filesInfo);},0);
+            });
         }
     }
     function makeHtml(filesInfo,text,type){
@@ -178,9 +206,9 @@ var $=unsafeWindow.$;
         html+=text ? '<font color="'+(type ? '#FF0000' : '#A1CBE4')+'"><b>'+text+'...</b></font>' : '';
         for(var i=0;i<files.length;i++){
             file=files[i];
-            url="http://music.baidu.com/data/music/file?link="+file.url;
+            url=file.url;
             html+='<span style="display:inline-block;min-width:200px;">';
-            html+='<a style="text-decoration:underline;" href="'+url+'" title="'+file.ratetitle+'"><b>'+file.ratetitle+'</b></a>';
+            html+='<a style="text-decoration:underline;" class="filelists" filerate="'+file.rate+'" href="'+url+'" title="'+file.ratetitle+'"><b>'+file.ratetitle+'</b></a>';
             html+='<span><b>&nbsp;&nbsp;&nbsp;'+file.size+'</b></span>';
             html+='<span style="color:#999999;">&nbsp;&nbsp;&nbsp;'+file.format+'&nbsp;&nbsp;'+file.rate+'kbps</span>';
             html+='</span>';
@@ -191,6 +219,38 @@ var $=unsafeWindow.$;
         html+=lyric ? '<span><a style="text-decoration:underline;" href="'+lyric+'" title="下载歌词">LRC歌词</a></span>' : '';
         html+='</div></div>';
         return html;
+    }
+    function downloadDialog(o,opt){
+        if(isUrl(o.href))return;
+        var box=o.box || $('<div/>');
+        clearTimeout(o.hwnd);
+        box.css({
+            "color":"red",
+            "fontSize":"20pt",
+            "left":"50%",
+            "position":"fixed",
+            "top":"250px",
+            "z-index":$.getzIndex()
+        }).html('<b>数据获取中...</b>').appendTo("body");
+        o.hwnd=setTimeout(function(){box.remove();},500);
+        
+        var data=getQueryData(opt,$(o).attr('filerate'));
+        GM_xmlhttpRequest({
+            "method":"POST",
+            "url":data.url,
+            "data":data.data,
+            "headers":{
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Host":"musicmini.baidu.com",
+                "Referer":"http://musicmini.baidu.com/",
+                "X-Requested-With":"XMLHttpRequest"
+            },            
+            "onload":function(response) {
+                var obj=JSON.parse(response.responseText),fileinfo=setSongsInfo(obj),url=fileinfo.files[0].url;
+                unsafeWindow.location=url;
+                o.href=url;
+            }
+        });
     }
     function showAlbumImg(){
         var url='http://tingapi.ting.baidu.com/v1/restserver/ting?method=baidu.ting.song.play&songid='+songInfo['id'],
@@ -362,8 +422,8 @@ var $=unsafeWindow.$;
     }
 })();
 function getModalJs(){
-    return '(function(b,c){var a=function(e){var d=this;this.cfg=b.extend({},{className:"dialogJmodal",resizeable:true},e);this.element=b("<div />").appendTo(document.body).css({display:"none",left:"0px",top:"0px",position:"absolute",backgroundColor:"#FFF",opacity:"0.7",zIndex:b.getzIndex(),width:this.width(),height:this.height()});if(this.cfg.show){this.show()}this.resizeFunc=function(){d.css("width",d.width());d.css("height",d.height());d.triggerHandler("resize")};if(this.cfg.resizeable){b(window).bind("resize",this.resizeFunc)}};a.prototype={constructor:a,show:function(){this.element.show.apply(this.element,arguments);this._processTages(1)},hide:function(){this.element.hide.apply(this.element,arguments);this._processTages(0)},width:function(){return b(window).width()},height:function(){return Math.max(b(document).height(),b("body").height(),b("html").height())},css:function(){this.element.css.apply(this.element,arguments)},triggerHandler:function(){this.element.triggerHandler.apply(this.element,arguments)},bind:function(){this.element.bind.apply(this.element,arguments)},remove:function(){this._processTages(0);this.element&&this.element.remove();b(window).unbind("resize",this.resizeFunc);for(var d in this){delete this[d]}},_processTages:function(g){var e=this;e.special=e.special||[];if(g){if(e.special.length>0){return}var h=b("SELECT,OBJECT,EMBED");if(this.cfg.safety){h=h.filter(function(i){return e.cfg.safety.find(this).length==0})}h.each(function(){var i=b(this);e.special.push({dom:this,css:i.css("visibility")});i.css("visibility","hidden")})}else{for(var f=0,d=e.special.length;f<d;f++){b(e.special[f].dom).css("visibility",e.special[f].css||"");e.special[f].dom=null}}}};b.modal=a;b.getzIndex=function(){b.zIndex=(b.zIndex||50000);return b.zIndex++}})($);';
-}
+    return '(function(b,c){var a=function(e){var d=this;this.cfg=b.extend({},{className:"dialogJmodal",resizeable:true},e);this.element=b("<div />").appendTo(document.body).css({display:"none",left:"0px",top:"0px",position:"absolute",backgroundColor:"#FFF",opacity:"0.7",zIndex:b.getzIndex(),width:this.width(),height:this.height()});if(this.cfg.show){this.show()}this.resizeFunc=function(){d.css("width",d.width());d.css("height",d.height());d.triggerHandler("resize")};if(this.cfg.resizeable){b(window).bind("resize",this.resizeFunc)}};a.prototype={constructor:a,show:function(){this.element.show.apply(this.element,arguments);this._processTages(1)},hide:function(){this.element.hide.apply(this.element,arguments);this._processTages(0)},width:function(){return b(window).width()},height:function(){return Math.max(b(document).height(),b("body").height(),b("html").height())},css:function(){this.element.css.apply(this.element,arguments)},triggerHandler:function(){this.element.triggerHandler.apply(this.element,arguments)},bind:function(){this.element.bind.apply(this.element,arguments)},remove:function(){this._processTages(0);this.element&&this.element.remove();b(window).unbind("resize",this.resizeFunc);for(var d in this){delete this[d]}},_processTages:function(g){var e=this;e.special=e.special||[];if(g){if(e.special.length>0){return}var h=b("SELECT,OBJECT,EMBED");if(this.cfg.safety){h=h.filter(function(i){return e.cfg.safety.find(this).length==0})}h.each(function(){var i=b(this);e.special.push({dom:this,css:i.css("visibility")});i.css("visibility","hidden")})}else{for(var f=0,d=e.special.length;f<d;f++){b(e.special[f].dom).css("visibility",e.special[f].css||"");e.special[f].dom=null}}}};b.modal=a;b.getzIndex=function(){b.zIndex=(b.zIndex||50000);return b.zIndex++}})($);';}
+function BaseEncode(){_keyStr="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",this.encode=function(a){var c,d,e,f,g,h,i,b="",j=0;for(a=_utf8_encode(a);j<a.length;)c=a.charCodeAt(j++),d=a.charCodeAt(j++),e=a.charCodeAt(j++),f=c>>2,g=(3&c)<<4|d>>4,h=(15&d)<<2|e>>6,i=63&e,isNaN(d)?h=i=64:isNaN(e)&&(i=64),b=b+_keyStr.charAt(f)+_keyStr.charAt(g)+_keyStr.charAt(h)+_keyStr.charAt(i);return b},_utf8_encode=function(a){var b,c,d;for(a=a.replace(/\r\n/g,"\n"),b="",c=0;c<a.length;c++)d=a.charCodeAt(c),128>d?b+=String.fromCharCode(d):d>127&&2048>d?(b+=String.fromCharCode(192|d>>6),b+=String.fromCharCode(128|63&d)):(b+=String.fromCharCode(224|d>>12),b+=String.fromCharCode(128|63&d>>6),b+=String.fromCharCode(128|63&d));return b}}
 function checkUpdate(){
     var js='var upinfo=document.getElementById("updateimg");';
     js+='upinfo.src="'+getUpdateUrl('checkupdate',1)+'";';
@@ -401,7 +461,6 @@ function googleAnalytics(){
     loadJs(js);
 }
 googleAnalytics();
-
 
 
 
