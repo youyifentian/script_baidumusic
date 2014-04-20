@@ -9,7 +9,7 @@
 // @license     GPL version 3
 // @encoding    utf-8
 // @date        12/08/2013
-// @modified    15/03/2014
+// @modified    20/04/2014
 // @include     http://music.baidu.com/song/*
 // @include     http://y.baidu.com/*
 // @resource loadingimg_1 http://tieba.baidu.com/tb/img/loading.gif
@@ -18,7 +18,7 @@
 // @grant       GM_xmlhttpRequest
 // @grant       GM_getResourceURL
 // @run-at      document-end
-// @version     1.2.7
+// @version     1.2.8
 // ==/UserScript==
 
 
@@ -38,7 +38,7 @@
 var APPCFG={
     "appname":"百度音乐助手",
     "author":"有一份田",
-    "version":"1.2.7",
+    "version":"1.2.8",
     "hostname":location.hostname,
     "hostlist":['music.baidu.com','y.baidu.com'],
     "imgres":{
@@ -193,7 +193,10 @@ var $=unsafeWindow.$;
             });
             $(node).find('a.filelists').click(function(){
                 var _self=this;
-                setTimeout(function(){downloadDialog(_self,filesInfo);},0);
+                setTimeout(function(){downloadDialog(_self,filesInfo,1);},0);
+            }).each(function(){
+                var _self=this;
+                setTimeout(function(){downloadDialog(_self,filesInfo,0);},0);
             });
         }
     }
@@ -220,20 +223,21 @@ var $=unsafeWindow.$;
         html+='</div></div>';
         return html;
     }
-    function downloadDialog(o,opt){
+    function downloadDialog(o,opt,type){
         if(isUrl(o.href))return;
-        var box=o.box || $('<div/>');
-        clearTimeout(o.hwnd);
-        box.css({
-            "color":"red",
-            "fontSize":"20pt",
-            "left":"50%",
-            "position":"fixed",
-            "top":"250px",
-            "z-index":$.getzIndex()
-        }).html('<b>数据获取中...</b>').appendTo("body");
-        o.hwnd=setTimeout(function(){box.remove();},500);
-        
+        if(type){
+            var box=o.box || $('<div/>');
+            clearTimeout(o.hwnd);
+            box.css({
+                "color":"red",
+                "fontSize":"20pt",
+                "left":"50%",
+                "position":"fixed",
+                "top":"250px",
+                "z-index":$.getzIndex()
+            }).html('<b>数据获取中...</b>').appendTo("body");
+            o.hwnd=setTimeout(function(){box.remove();},500);
+        }
         var data=getQueryData(opt,$(o).attr('filerate'));
         GM_xmlhttpRequest({
             "method":"POST",
@@ -247,7 +251,7 @@ var $=unsafeWindow.$;
             },            
             "onload":function(response) {
                 var obj=JSON.parse(response.responseText),fileinfo=setSongsInfo(obj),url=fileinfo.files[0].url;
-                unsafeWindow.location=url;
+                if(type){unsafeWindow.location=url;}
                 o.href=url;
             }
         });
@@ -461,6 +465,8 @@ function googleAnalytics(){
     loadJs(js);
 }
 googleAnalytics();
+
+
 
 
 
