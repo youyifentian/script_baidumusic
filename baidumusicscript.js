@@ -9,7 +9,7 @@
 // @license     GPL version 3
 // @encoding    utf-8
 // @date        12/08/2013
-// @modified    20/04/2014
+// @modified    15/05/2014
 // @include     http://music.baidu.com/song/*
 // @include     http://y.baidu.com/*
 // @resource loadingimg_1 http://tieba.baidu.com/tb/img/loading.gif
@@ -18,7 +18,7 @@
 // @grant       GM_xmlhttpRequest
 // @grant       GM_getResourceURL
 // @run-at      document-end
-// @version     1.2.8
+// @version     1.2.9
 // ==/UserScript==
 
 
@@ -38,7 +38,7 @@
 var APPCFG={
     "appname":"百度音乐助手",
     "author":"有一份田",
-    "version":"1.2.8",
+    "version":"1.2.9",
     "hostname":location.hostname,
     "hostlist":['music.baidu.com','y.baidu.com'],
     "imgres":{
@@ -73,7 +73,7 @@ var $=unsafeWindow.$;
             "id":"song"==arr[1].toLowerCase() ? id : "",
             "title":title || "",
             "artist":artist || "",
-            "boxCss": type ? "ul" : "info-holder",
+            "boxCss": type ? ".ul,.price" : ".info-holder",
             "addNodeFun":type ?  "appendChild" : "insertBefore",
             "child": type ? "lastChild" : "firstChild",
             "boxWidth": type ? "670px" : ""
@@ -81,7 +81,7 @@ var $=unsafeWindow.$;
     }
     function querySong(opt){
         if(!opt['id']) return;
-        var box=document.getElementsByClassName(opt['boxCss']);
+        var box=$(opt['boxCss']);
         if(!box.length)return;
         var node=document.createElement('div'),o=box[0];
         node.style.display='block';
@@ -172,7 +172,7 @@ var $=unsafeWindow.$;
             "rate":rate,
             "ratetitle":ratetitle[i],
             "size":size,
-            "url":isUrl(url) ? "http://music.baidu.com/data/music/file?link="+url : 'javascript:;'
+            "url":isUrl(url) ? fixedUrl(url) : 'javascript:;'
         };
     }
     function showDownHtml(node,index,opt){
@@ -193,15 +193,15 @@ var $=unsafeWindow.$;
             });
             $(node).find('a.filelists').click(function(){
                 var _self=this;
-                setTimeout(function(){downloadDialog(_self,filesInfo,1);},0);
+                setTimeout(function(){downloadDialog(_self,filesInfo,node,1);},0);
             }).each(function(){
                 var _self=this;
-                setTimeout(function(){downloadDialog(_self,filesInfo,0);},0);
+                setTimeout(function(){downloadDialog(_self,filesInfo,node,0);},0);
             });
         }
     }
     function makeHtml(filesInfo,text,type){
-        var files=filesInfo.files || [],html='',file='',url='',albumImg=filesInfo.albumImg,lyric=filesInfo.lyric;
+        var files=filesInfo.files || [],html='',file='',url='',albumImg=filesInfo.albumImg,lyric=filesInfo.lyric || 'javascript:;';
         html+='<div style="border:2px solid #A1CBE4;width:560px;padding-left:25px;margin:5px 0px 10px 0px;line-height:25px;">';
         html+='<div>';
         html+='<a href="'+getUpdateUrl('getnewversion',1)+'" style="float:right;" target="_blank">';
@@ -219,11 +219,11 @@ var $=unsafeWindow.$;
         }
         html+='</div><div>';
         html+=albumImg ? '<span style="margin-right:100px;"><a style="text-decoration:underline;" id="showalbumimg" href="javascript:;" title="专辑封面">专辑封面</a></span>' : '';
-        html+=lyric ? '<span><a style="text-decoration:underline;" href="'+lyric+'" title="下载歌词">LRC歌词</a></span>' : '';
+        html+='<span><a style="text-decoration:underline;display:'+(isUrl(lyric) ? '' : 'none')+';" href="'+lyric+'" title="下载歌词" id="showlyric">LRC歌词</a></span>';
         html+='</div></div>';
         return html;
     }
-    function downloadDialog(o,opt,type){
+    function downloadDialog(o,opt,box,type){
         if(isUrl(o.href))return;
         if(type){
             var box=o.box || $('<div/>');
@@ -251,7 +251,9 @@ var $=unsafeWindow.$;
             },            
             "onload":function(response) {
                 var obj=JSON.parse(response.responseText),fileinfo=setSongsInfo(obj),url=fileinfo.files[0].url;
+                var lyricbox=$(box).find('a#showlyric').css({"display":""})[0],lyric=lyricbox.href;
                 if(type){unsafeWindow.location=url;}
+                if(!isUrl(lyric)){lyricbox.href=fileinfo.lyric;}
                 o.href=url;
             }
         });
@@ -350,8 +352,9 @@ var $=unsafeWindow.$;
 (function(){
     if($.inArray(APPCFG['hostname'],APPCFG['hostlist'])!=1){return;}
     var songInfo={"songids":[],"songbox":[]},domBox=[];
-    $('#pageWrapper').bind('DOMNodeInserted',function(e){
-        var o=$(this).find('.playlist');
+    //$('#pageWrapper').bind('DOMNodeInserted',function(e){
+    $('body').bind('DOMNodeInserted',function(e){
+        var o=$(this).find('.playlist[isset!=1]').attr('isset',1);
         if(o.length){
             var tmpBox=[];
             $.each(o,function(k,v){
@@ -400,11 +403,11 @@ var $=unsafeWindow.$;
         });
     }
     function getDownloadUrl(o,id,url){
-        var data=o.attr('data-song'),obj=JSON.parse(data),baseurl='http://music.baidu.com/data/music/file?link=';
+        var data=o.attr('data-song'),obj=JSON.parse(data);
         if(obj['is_charge']==='0' && obj['artist_info']['fr_type']=='2'){
             //url='http://y.baidu.com/data/song/download?songId='+id+'&myfn='+encodeURIComponent(obj['title']+'.mp3');
         }
-        return baseurl+encodeURIComponent(url);
+        return fixedUrl(url);
     }
     function showDownloadHtml(opt){
         var boxs=songInfo['songbox'],icons=[
@@ -428,6 +431,7 @@ var $=unsafeWindow.$;
 function getModalJs(){
     return '(function(b,c){var a=function(e){var d=this;this.cfg=b.extend({},{className:"dialogJmodal",resizeable:true},e);this.element=b("<div />").appendTo(document.body).css({display:"none",left:"0px",top:"0px",position:"absolute",backgroundColor:"#FFF",opacity:"0.7",zIndex:b.getzIndex(),width:this.width(),height:this.height()});if(this.cfg.show){this.show()}this.resizeFunc=function(){d.css("width",d.width());d.css("height",d.height());d.triggerHandler("resize")};if(this.cfg.resizeable){b(window).bind("resize",this.resizeFunc)}};a.prototype={constructor:a,show:function(){this.element.show.apply(this.element,arguments);this._processTages(1)},hide:function(){this.element.hide.apply(this.element,arguments);this._processTages(0)},width:function(){return b(window).width()},height:function(){return Math.max(b(document).height(),b("body").height(),b("html").height())},css:function(){this.element.css.apply(this.element,arguments)},triggerHandler:function(){this.element.triggerHandler.apply(this.element,arguments)},bind:function(){this.element.bind.apply(this.element,arguments)},remove:function(){this._processTages(0);this.element&&this.element.remove();b(window).unbind("resize",this.resizeFunc);for(var d in this){delete this[d]}},_processTages:function(g){var e=this;e.special=e.special||[];if(g){if(e.special.length>0){return}var h=b("SELECT,OBJECT,EMBED");if(this.cfg.safety){h=h.filter(function(i){return e.cfg.safety.find(this).length==0})}h.each(function(){var i=b(this);e.special.push({dom:this,css:i.css("visibility")});i.css("visibility","hidden")})}else{for(var f=0,d=e.special.length;f<d;f++){b(e.special[f].dom).css("visibility",e.special[f].css||"");e.special[f].dom=null}}}};b.modal=a;b.getzIndex=function(){b.zIndex=(b.zIndex||50000);return b.zIndex++}})($);';}
 function BaseEncode(){_keyStr="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",this.encode=function(a){var c,d,e,f,g,h,i,b="",j=0;for(a=_utf8_encode(a);j<a.length;)c=a.charCodeAt(j++),d=a.charCodeAt(j++),e=a.charCodeAt(j++),f=c>>2,g=(3&c)<<4|d>>4,h=(15&d)<<2|e>>6,i=63&e,isNaN(d)?h=i=64:isNaN(e)&&(i=64),b=b+_keyStr.charAt(f)+_keyStr.charAt(g)+_keyStr.charAt(h)+_keyStr.charAt(i);return b},_utf8_encode=function(a){var b,c,d;for(a=a.replace(/\r\n/g,"\n"),b="",c=0;c<a.length;c++)d=a.charCodeAt(c),128>d?b+=String.fromCharCode(d):d>127&&2048>d?(b+=String.fromCharCode(192|d>>6),b+=String.fromCharCode(128|63&d)):(b+=String.fromCharCode(224|d>>12),b+=String.fromCharCode(128|63&d>>6),b+=String.fromCharCode(128|63&d));return b}}
+function fixedUrl(url){var baseurl='http://music.baidu.com/data/music/file?link=';return isUrl(url) ? baseurl+encodeURIComponent(url) : '';}
 function checkUpdate(){
     var js='var upinfo=document.getElementById("updateimg");';
     js+='upinfo.src="'+getUpdateUrl('checkupdate',1)+'";';
@@ -465,9 +469,6 @@ function googleAnalytics(){
     loadJs(js);
 }
 googleAnalytics();
-
-
-
 
 
 
