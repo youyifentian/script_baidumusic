@@ -67,27 +67,31 @@ var $=unsafeWindow.$;
     loadJs(modalJS);
     querySong(songInfo);
     function getSongInfo(id,title,artist){
-        var path=window.location.pathname,arr=path.split('/'),id=arr[2] || id,p=arr[3],
-        type=p && 'download'==p.toLowerCase();
+        var path=window.location.pathname,arr=path.split('/'),id=arr[2] || id;
         return {
             "id":"song"==arr[1].toLowerCase() ? id : "",
             "title":title || "",
             "artist":artist || "",
-            "boxCss": type ? ".ul,.price" : ".info-holder",
-            "addNodeFun":type ?  "appendChild" : "insertBefore",
-            "child": type ? "lastChild" : "firstChild",
-            "boxWidth": type ? "670px" : ""
+            "boxsets":[
+                {"css":".info-holder","fun":"insertBefore","child":"firstChild","width":""},
+                {"css":".ul,.price,.info-wrap ul","fun":"appendChild","child":"lastChild","width":"670px"}
+            ]
 	    };
     }
     function querySong(opt){
         if(!opt['id']) return;
-        var box=$(opt['boxCss']);
+        var boxsets=opt['boxsets'],boxset={},box=[];
+        for(var i=0,len=boxsets.length;i<len;i++){
+            boxset=boxsets[i];
+            box=$(boxset['css']);
+            if(box.length){break;}
+        }
         if(!box.length)return;
         var node=document.createElement('div'),o=box[0];
         node.style.display='block';
-        o[opt['addNodeFun']](node,o[opt['child']]);
+        o[boxset['fun']](node,o[boxset['child']]);
         try{
-            o.parentNode.parentNode.parentNode.style.minWidth=opt['boxWidth'];
+            o.parentNode.parentNode.parentNode.style.minWidth=boxset['width'];
         }catch(err){}
         if(!GM_xmlhttpRequest){
             showDownHtml(node,4);
@@ -469,7 +473,5 @@ function googleAnalytics(){
     loadJs(js);
 }
 googleAnalytics();
-
-
 
 
