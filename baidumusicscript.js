@@ -9,7 +9,7 @@
 // @license     GPL version 3
 // @encoding    utf-8
 // @date        12/08/2013
-// @modified    15/05/2014
+// @modified    15/09/2014
 // @include     http://music.baidu.com/song/*
 // @include     http://y.baidu.com/*
 // @resource loadingimg_1 http://tieba.baidu.com/tb/img/loading.gif
@@ -18,7 +18,7 @@
 // @grant       GM_xmlhttpRequest
 // @grant       GM_getResourceURL
 // @run-at      document-end
-// @version     1.2.9
+// @version     1.3.0
 // ==/UserScript==
 
 
@@ -38,7 +38,7 @@
 var APPCFG={
     "appname":"百度音乐助手",
     "author":"有一份田",
-    "version":"1.2.9",
+    "version":"1.3.0",
     "hostname":location.hostname,
     "hostlist":['music.baidu.com','y.baidu.com'],
     "imgres":{
@@ -50,7 +50,7 @@ var APPCFG={
     }
 };
 var t=new Date().getTime();
-var $=unsafeWindow.$;
+$ = $ || unsafeWindow.$;
 (function(){
     var O=APPCFG['imgres'];
     for(var _ in O){
@@ -62,9 +62,7 @@ var $=unsafeWindow.$;
 })();
 (function(){
     if($.inArray(APPCFG['hostname'],APPCFG['hostlist'])!=0){return;}
-    var filesInfo={},albumImgCache=[],albumImgIndex=0,
-    modalJS=getModalJs(),songInfo=getSongInfo();
-    loadJs(modalJS);
+    var filesInfo={},albumImgCache=[],albumImgIndex=0,songInfo=getSongInfo();
     querySong(songInfo);
     function getSongInfo(id,title,artist){
         var path=window.location.pathname,arr=path.split('/'),id=arr[2] || id;
@@ -227,7 +225,7 @@ var $=unsafeWindow.$;
         html+='</div></div>';
         return html;
     }
-    function downloadDialog(o,opt,box,type){
+    function downloadDialog(o,opt,node,type){
         if(isUrl(o.href))return;
         if(type){
             var box=o.box || $('<div/>');
@@ -255,9 +253,10 @@ var $=unsafeWindow.$;
             },            
             "onload":function(response) {
                 var obj=JSON.parse(response.responseText),fileinfo=setSongsInfo(obj),url=fileinfo.files[0].url;
-                var lyricbox=$(box).find('a#showlyric').css({"display":""})[0],lyric=lyricbox.href;
+                var lyricbox=$(node).find('a#showlyric').css({"display":"none"}),lyric=lyricbox.attr('href');
                 if(type){unsafeWindow.location=url;}
-                if(!isUrl(lyric)){lyricbox.href=fileinfo.lyric;}
+                lyric = isUrl(lyric) ? lyric : (fileinfo.lyric || 'javascript:;');
+                if(isUrl(lyric)){lyricbox.css({"display":""}).attr('href',lyric);}
                 o.href=url;
             }
         });
@@ -272,7 +271,7 @@ var $=unsafeWindow.$;
         ],modal= new $.modal({show: true}),box=$('<div/>').css({
             "left":"50%",
             "top":"50%",
-            "position":"absolute",
+            "position":"fixed",
             "min-height":"240px",
             "min-width":"240px",
             "z-index":$.getzIndex()
@@ -432,8 +431,7 @@ var $=unsafeWindow.$;
         }
     }
 })();
-function getModalJs(){
-    return '(function(b,c){var a=function(e){var d=this;this.cfg=b.extend({},{className:"dialogJmodal",resizeable:true},e);this.element=b("<div />").appendTo(document.body).css({display:"none",left:"0px",top:"0px",position:"absolute",backgroundColor:"#FFF",opacity:"0.7",zIndex:b.getzIndex(),width:this.width(),height:this.height()});if(this.cfg.show){this.show()}this.resizeFunc=function(){d.css("width",d.width());d.css("height",d.height());d.triggerHandler("resize")};if(this.cfg.resizeable){b(window).bind("resize",this.resizeFunc)}};a.prototype={constructor:a,show:function(){this.element.show.apply(this.element,arguments);this._processTages(1)},hide:function(){this.element.hide.apply(this.element,arguments);this._processTages(0)},width:function(){return b(window).width()},height:function(){return Math.max(b(document).height(),b("body").height(),b("html").height())},css:function(){this.element.css.apply(this.element,arguments)},triggerHandler:function(){this.element.triggerHandler.apply(this.element,arguments)},bind:function(){this.element.bind.apply(this.element,arguments)},remove:function(){this._processTages(0);this.element&&this.element.remove();b(window).unbind("resize",this.resizeFunc);for(var d in this){delete this[d]}},_processTages:function(g){var e=this;e.special=e.special||[];if(g){if(e.special.length>0){return}var h=b("SELECT,OBJECT,EMBED");if(this.cfg.safety){h=h.filter(function(i){return e.cfg.safety.find(this).length==0})}h.each(function(){var i=b(this);e.special.push({dom:this,css:i.css("visibility")});i.css("visibility","hidden")})}else{for(var f=0,d=e.special.length;f<d;f++){b(e.special[f].dom).css("visibility",e.special[f].css||"");e.special[f].dom=null}}}};b.modal=a;b.getzIndex=function(){b.zIndex=(b.zIndex||50000);return b.zIndex++}})($);';}
+!function(a){var c=function(b){var c=this;this.cfg=a.extend({},{className:"dialogJmodal",resizeable:!0},b),this.element=a("<div />").appendTo(document.body).css({display:"none",left:"0px",top:"0px",position:"absolute",backgroundColor:"#FFF",opacity:"0.7",zIndex:a.getzIndex(),width:this.width(),height:this.height()}),this.cfg.show&&this.show(),this.resizeFunc=function(){c.css("width",c.width()),c.css("height",c.height()),c.triggerHandler("resize")},this.cfg.resizeable&&a(window).bind("resize",this.resizeFunc)};c.prototype={constructor:c,show:function(){this.element.show.apply(this.element,arguments),this._processTages(1)},hide:function(){this.element.hide.apply(this.element,arguments),this._processTages(0)},width:function(){return a(window).width()},height:function(){return Math.max(a(document).height(),a("body").height(),a("html").height())},css:function(){this.element.css.apply(this.element,arguments)},triggerHandler:function(){this.element.triggerHandler.apply(this.element,arguments)},bind:function(){this.element.bind.apply(this.element,arguments)},remove:function(){this._processTages(0),this.element&&this.element.remove(),a(window).unbind("resize",this.resizeFunc);for(var b in this)delete this[b]},_processTages:function(b){var d,e,f,c=this;if(c.special=c.special||[],b){if(c.special.length>0)return;d=a("SELECT,OBJECT,EMBED"),this.cfg.safety&&(d=d.filter(function(){return 0==c.cfg.safety.find(this).length})),d.each(function(){var b=a(this);c.special.push({dom:this,css:b.css("visibility")}),b.css("visibility","hidden")})}else for(e=0,f=c.special.length;f>e;e++)a(c.special[e].dom).css("visibility",c.special[e].css||""),c.special[e].dom=null}},a.modal=c,a.getzIndex=function(){return a.zIndex=a.zIndex||5e4,a.zIndex++}}($);
 function BaseEncode(){_keyStr="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",this.encode=function(a){var c,d,e,f,g,h,i,b="",j=0;for(a=_utf8_encode(a);j<a.length;)c=a.charCodeAt(j++),d=a.charCodeAt(j++),e=a.charCodeAt(j++),f=c>>2,g=(3&c)<<4|d>>4,h=(15&d)<<2|e>>6,i=63&e,isNaN(d)?h=i=64:isNaN(e)&&(i=64),b=b+_keyStr.charAt(f)+_keyStr.charAt(g)+_keyStr.charAt(h)+_keyStr.charAt(i);return b},_utf8_encode=function(a){var b,c,d;for(a=a.replace(/\r\n/g,"\n"),b="",c=0;c<a.length;c++)d=a.charCodeAt(c),128>d?b+=String.fromCharCode(d):d>127&&2048>d?(b+=String.fromCharCode(192|d>>6),b+=String.fromCharCode(128|63&d)):(b+=String.fromCharCode(224|d>>12),b+=String.fromCharCode(128|63&d>>6),b+=String.fromCharCode(128|63&d));return b}}
 function fixedUrl(url){var baseurl='http://music.baidu.com/data/music/file?link=';return isUrl(url) ? baseurl+encodeURIComponent(url) : '';}
 function checkUpdate(){
@@ -473,5 +471,6 @@ function googleAnalytics(){
     loadJs(js);
 }
 googleAnalytics();
+
 
 
