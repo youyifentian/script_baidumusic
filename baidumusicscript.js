@@ -9,7 +9,7 @@
 // @license     GPL version 3
 // @encoding    utf-8
 // @date        12/08/2013
-// @modified    15/09/2014
+// @modified    06/12/2014
 // @include     http://music.baidu.com/song/*
 // @include     http://y.baidu.com/*
 // @resource loadingimg_1 http://tieba.baidu.com/tb/img/loading.gif
@@ -18,7 +18,7 @@
 // @grant       GM_xmlhttpRequest
 // @grant       GM_getResourceURL
 // @run-at      document-end
-// @version     1.3.1
+// @version     1.3.2
 // ==/UserScript==
 
 
@@ -38,7 +38,7 @@
 var APPCFG={
     "appname":"百度音乐助手",
     "author":"有一份田",
-    "version":"1.3.1",
+    "version":"1.3.2",
     "hostname":location.hostname,
     "hostlist":['music.baidu.com','y.baidu.com'],
     "imgres":{
@@ -122,7 +122,9 @@ if(!$){
     }
     function getQueryData(opt,rate){
         var dataBase = {
+            "songId": opt.id || opt.song_id,
             "songsId": opt.id || opt.song_id,
+            "songsiId": opt.id || opt.song_id,
             "songArtist": opt.artist || opt.song_artist,
             "songTitle": opt.title || opt.song_title,
             "songAppend": '',
@@ -473,6 +475,4 @@ function googleAnalytics(){
     loadJs(js);
 }
 googleAnalytics();
-
-
 
